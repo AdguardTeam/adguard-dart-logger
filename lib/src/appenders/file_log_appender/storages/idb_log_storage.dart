@@ -6,6 +6,7 @@ import 'package:adguard_logger/src/formatters/data_logger_formatter.dart';
 import 'package:adguard_logger/src/formatters/no_sql_logger_formatter.dart';
 import 'package:adguard_logger/src/model/log_record.dart';
 import 'package:adguard_logger/src/appenders/file_log_appender/storages/log_storage.dart';
+import 'package:idb_shim/idb.dart';
 import 'package:idb_shim/idb_browser.dart';
 
 /// An implementation of [LogStorage] that uses IndexedDB to store logs.
