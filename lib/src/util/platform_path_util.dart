@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:adguard_logger/src/util/platform_util.dart';
+
 
 abstract class PlatformPathUtil {
-  static String get platformSeparator => kIsWeb ? '/' : Platform.pathSeparator;
+  static String get platformSeparator => PlatformUtil.kIsWeb ? '/' : Platform.pathSeparator;
 }

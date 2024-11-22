@@ -20,5 +20,4 @@ export 'src/appenders/file_log_appender/storages/file_log_storage.dart';
 export 'src/appenders/file_log_appender/storages/idb_log_storage.dart';
 export 'src/appenders/file_log_appender/storages/log_storage.dart';
 export 'src/util/archive_util.dart';
-export 'src/util/containment_file_util.dart';
 export 'src/util/logger_format_util.dart';

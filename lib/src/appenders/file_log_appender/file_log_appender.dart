@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:adguard_logger/src/appenders/file_log_appender/model/log_meta_data.dart';
 import 'package:adguard_logger/src/model/log_record.dart';
@@ -11,7 +12,6 @@ import 'package:adguard_logger/src/util/archive_util.dart';
 import 'package:adguard_logger/src/util/platform_path_util.dart';
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:rxdart/rxdart.dart';
 
