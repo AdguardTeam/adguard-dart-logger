@@ -1,6 +1,6 @@
 import 'package:adguard_logger/src/logger.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
+import 'package:meta/meta.dart';
 
 /// A logger extension for logging HTTP requests and responses.
 ///

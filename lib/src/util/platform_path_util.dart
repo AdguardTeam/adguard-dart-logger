@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
-
 abstract class PlatformPathUtil {
-  static String get platformSeparator => kIsWeb ? '/' : Platform.pathSeparator;
+  static bool get _kIsWeb => const bool.fromEnvironment('dart.library.js_util');
+
+  static String get platformSeparator => _kIsWeb ? '/' : Platform.pathSeparator;
 }
