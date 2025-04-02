@@ -1,11 +1,11 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:adguard_logger/src/appenders/file_log_appender/model/log_meta_data.dart';
+import 'package:adguard_logger/src/appenders/file_log_appender/storages/log_storage.dart';
 import 'package:adguard_logger/src/formatters/data_logger_formatter.dart';
 import 'package:adguard_logger/src/formatters/no_sql_logger_formatter.dart';
 import 'package:adguard_logger/src/model/log_record.dart';
-import 'package:adguard_logger/src/appenders/file_log_appender/storages/log_storage.dart';
 import 'package:idb_shim/idb_browser.dart';
 
 /// An implementation of [LogStorage] that uses IndexedDB to store logs.
@@ -45,14 +45,30 @@ class IDbLogStorage implements LogStorage {
       );
 
   /// Returns the object store for log data transactions.
-  ObjectStore get _logObjectStore =>
+  Future<ObjectStore?> _tryGetObjectStore() async {
+    try {
+      return _objectStore;
+    } catch (err) {
+      // If the database is not initialized or closed, reinitialize it
+      try {
+        await init();
+        return _objectStore;
+      } catch (e) {
+        return null;
+      }
+    }
+  }
+
+  ObjectStore get _objectStore =>
       _database.transaction(_logObjectNameStore, idbModeReadWrite).objectStore(_logObjectNameStore);
 
   /// Writes metadata to the IndexedDB object store at the specified [path].
   /// If metadata for the given path already exists, it is updated.
   @override
   Future<void> writeMetaData(String path, List<LogMetaData> data) async {
-    final currentStore = _logObjectStore;
+    final currentStore = await _tryGetObjectStore();
+    if (currentStore == null) return;
+
     final decodedData = data.map((e) => e.toMap()).toList();
     bool found = false;
 
@@ -73,7 +89,9 @@ class IDbLogStorage implements LogStorage {
   /// Log records are formatted using the formatter and stored as JSON objects.
   @override
   Future<void> writeLogData(String path, List<LogRecord> data) async {
-    final currentStore = _logObjectStore;
+    final currentStore = await _tryGetObjectStore();
+    if (currentStore == null) return;
+
     final mutableDataList = data.toList();
 
     await Future.wait([
@@ -114,7 +132,9 @@ class IDbLogStorage implements LogStorage {
 
   /// Helper method to fetch all [LogRecord]s for the given [path] from the IndexedDB.
   Future<List<LogRecord>> _getRecordsFromDb(String path) async {
-    final currentStore = _logObjectStore;
+    final currentStore = await _tryGetObjectStore();
+    if (currentStore == null) return [];
+
     final cursor = currentStore.index(_pathIndex).openCursor(
           key: path,
           autoAdvance: true,
@@ -131,7 +151,9 @@ class IDbLogStorage implements LogStorage {
   /// Deletes log data from IndexedDB at the specified [path].
   @override
   Future<void> deleteData(String path) async {
-    final currentStore = _logObjectStore;
+    final currentStore = await _tryGetObjectStore();
+    if (currentStore == null) return;
+
     final cursor = currentStore.index(_pathIndex).openCursor(
           key: path,
           autoAdvance: true,
@@ -144,7 +166,9 @@ class IDbLogStorage implements LogStorage {
   /// Returns a list of [LogMetaData] or an empty list if no metadata is found.
   @override
   Future<List<LogMetaData>> readMetaData(String path) async {
-    final currentStore = _logObjectStore;
+    final currentStore = await _tryGetObjectStore();
+    if (currentStore == null) return [];
+
     final metaData = await currentStore.index(_pathIndex).get(path) as Map?;
     if (metaData == null) {
       return [];
@@ -154,7 +178,9 @@ class IDbLogStorage implements LogStorage {
 
   @override
   Future<List<String>> readFileNames(String path) async {
-    final currentStore = _logObjectStore;
+    final currentStore = await _tryGetObjectStore();
+    if (currentStore == null) return [];
+
     final allValues = await currentStore.index(_pathIndex).getAll();
     final indexes = allValues.map((e) => (e as Map<String, dynamic>)[_pathIndex]).toSet();
     return indexes.cast<String>().toList();
