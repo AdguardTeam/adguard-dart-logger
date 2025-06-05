@@ -45,30 +45,29 @@ abstract class ArchiveUtil {
 
     // Iterates over the provided files and adds each one to the archive.
     for (final file in archiveFiles.entries) {
-      final stream = InputStream(
+      final stream = InputMemoryStream(
         file.value,
         length: file.value.length,
       );
       archive.addFile(ArchiveFile.stream(
         file.key, // The file name
-        file.value.length, // The file size
         stream, // The file data stream
       ));
     }
 
     // Initializes an output stream with little-endian byte order (platform-independent).
-    final outputStream = OutputStream(
-      byteOrder: LITTLE_ENDIAN,
+    final outputStream = OutputMemoryStream(
+      byteOrder: ByteOrder.littleEndian,
     );
 
     // Compresses the archive with the highest compression level and returns the result as a byte list.
     final bytes = encoder.encode(
       archive,
-      level: Deflate.BEST_COMPRESSION,
+      level: DeflateLevel.bestCompression,
       output: outputStream,
     );
 
     // Returns the generated ZIP file as a Uint8List.
-    return Uint8List.fromList(bytes!);
+    return Uint8List.fromList(bytes);
   }
 }
