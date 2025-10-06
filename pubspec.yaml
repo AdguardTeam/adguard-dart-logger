@@ -1,7 +1,7 @@
 name: adguard_logger
 description: "AdGuard Logger"
-version: 1.0.1
-homepage:
+version: 1.0.4
+homepage: 'https://example.org'
 
 environment:
   sdk: '>=3.5.0 <4.0.0'

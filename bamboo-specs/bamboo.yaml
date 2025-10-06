@@ -1,0 +1,57 @@
+---
+version: 2
+plan:
+  project-key: FLUTTER
+  key: DARTLOGGER
+  name: AdGuard Dart Logger library - deploy to OnePub
+
+stages:
+  - Docker:
+      manual: false
+      final: false
+      jobs:
+        - Deploy
+
+Deploy:
+  key: DARTLOGGER
+  other:
+      clean-working-dir: true
+  tasks:
+    - checkout:
+        force-clean-build: true
+
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            #!/bin/bash
+            set -e -x
+
+            exec 2>&1
+
+            docker build \
+              --build-arg ONEPUB_TOKEN=${bamboo.onepubSecretApiKey} \
+              --progress=plain \
+              .
+
+  requirements:
+    - adg-docker: true
+
+branches:
+  create: manually
+  delete:
+    after-deleted-days: 15
+    after-inactive-days: never
+  link-to-jira: false
+
+notifications:
+- events:
+  - plan-failed
+  recipients:
+  - responsible
+  - watchers
+
+labels: []
+
+other:
+  concurrent-build-plugin: '1'
