@@ -22,18 +22,20 @@ class HttpLoggerExtension extends LoggerExtension<HttpLoggerExtension> {
   @mustCallSuper
   void logFailedRequest(BaseRequest request, Object exception, {String? requestIdHeader}) {
     final method = request.method;
-    final url = request.url.toString();
+    final url = request.url;
     final requestId = request.headers[requestIdHeader];
     final duration = _removeRequestReceiveTime(requestId)?.inMilliseconds;
 
-    final requestIdMessage = requestId != null ? 'Id=$requestId' : '';
+    final String urlTag = url.toString();
+    final String methodTag = '${method.toUpperCase()} Failed';
+    final String? durationTag = duration != null ? '${duration}ms' : null;
+
+    final List<String> additionalTags = [methodTag, urlTag, if (durationTag != null) durationTag];
 
     logError(
-      [
-        '$method to $url failed${duration == null ? '.' : ' in ${duration}ms.'}',
-        if (requestIdMessage.isNotEmpty) requestIdMessage,
-      ].join('\n'),
+      '',
       error: exception,
+      additionalTags: additionalTags,
     );
   }
 
@@ -45,15 +47,26 @@ class HttpLoggerExtension extends LoggerExtension<HttpLoggerExtension> {
   ///
   /// [request] - The HTTP request to log.
   /// [requestIdHeader] - Optional header name to retrieve the request ID.
+  /// [additionalMessage] - Optional additional message to log.
   @mustCallSuper
-  void logHttpRequest(Request request, {String? requestIdHeader}) {
+  void logHttpRequest(Request request, {String? requestIdHeader, String? additionalMessage}) {
     final requestId = request.headers[requestIdHeader];
+    final url = request.url;
+    final method = request.method;
+
     if (requestId != null) {
       _writeRequestSendTime(requestId);
     }
 
-    final message = _getMessageForRequest(request, requestId: requestId);
-    logDebug(message);
+    final String urlTag = url.toString();
+    final String methodTag = '${method.toUpperCase()} Processed';
+
+    final String messageText = [
+      if (additionalMessage != null) additionalMessage,
+    ].join('\n');
+    final List<String> additionalTags = [methodTag, urlTag];
+
+    logDebug(messageText, additionalTags: additionalTags);
   }
 
   /// Logs an HTTP response.
@@ -65,70 +78,31 @@ class HttpLoggerExtension extends LoggerExtension<HttpLoggerExtension> {
   /// [response] - The HTTP response to log.
   /// [requestIdHeader] - Optional header name to retrieve the request ID.
   @mustCallSuper
-  void logHttpResponse(Response response, {String? requestIdHeader}) {
-    final message = _getMessageForResponse(response, requestIdHeader: requestIdHeader);
-    if (message == null) {
-      return;
-    }
+  void logHttpResponse(Response response, {String? requestIdHeader, String? additionalMessage}) {
+    final Uri? url = response.request?.url;
+    final String? requestId = response.request?.headers[requestIdHeader];
+    final String method = response.request?.method.toUpperCase() ?? '';
+    final String reason = response.reasonPhrase ?? '';
+    final String body = response.body;
+    final Duration? duration = _removeRequestReceiveTime(requestId);
+    final int statusCode = response.statusCode;
+    final bool isSuccessful = response.isSuccessful;
+
+    final String urlTag = url != null ? url.toString() : '';
+    final String? durationTag = duration != null ? '${duration.inMilliseconds}ms' : null;
+    final String resultTag = '$method Completed $statusCode';
+
+    final List<String> additionalTags = [resultTag, urlTag, if (durationTag != null) durationTag];
+    final String messageText = [
+      if (additionalMessage != null) additionalMessage,
+      if (!isSuccessful) 'Fail reason: $reason\nResponse body: $body',
+    ].join('\n');
+
     if (response.isSuccessful) {
-      logDebug(message);
+      logDebug(messageText, additionalTags: additionalTags);
     } else {
-      logError(message);
+      logError(messageText, additionalTags: additionalTags);
     }
-  }
-
-  /// Constructs a message for an HTTP request.
-  ///
-  /// This method creates a formatted string message for the provided HTTP request.
-  ///
-  /// [request] - The HTTP request for which to generate a message.
-  /// [requestId] - The request ID (if available).
-  String _getMessageForRequest(Request request, {String? requestId}) {
-    final url = request.url.toString();
-    final method = request.method;
-    final message = [
-      '$method to $url',
-      if (requestId != null) 'Id=$requestId',
-    ].join('\n');
-
-    return message;
-  }
-
-  /// Constructs a message for an HTTP response.
-  ///
-  /// This method creates a formatted string message for the provided HTTP response.
-  ///
-  /// [response] - The HTTP response for which to generate a message.
-  /// [requestIdHeader] - Optional header name to retrieve the request ID.
-  String? _getMessageForResponse(Response response, {String? requestIdHeader}) {
-    final request = response.request;
-    if (request == null) {
-      return null;
-    }
-
-    final reason = response.reasonPhrase;
-    final statusCode = response.statusCode;
-    final isSuccessful = response.isSuccessful;
-
-    final url = request.url.toString();
-    final requestId = request.headers[requestIdHeader];
-    final duration = _removeRequestReceiveTime(requestId);
-
-    final durationMessage = duration != null ? ' in ${duration.inMilliseconds}ms.' : '.';
-    final requestIdMessage = requestId != null ? 'Id=$requestId' : '';
-    final method = request.method;
-
-    final message = [
-      '$method to $url completed$durationMessage.',
-      if (requestIdMessage.isNotEmpty) requestIdMessage,
-      'Status=$statusCode',
-      if (!isSuccessful) ...[
-        'Fail reason: $reason',
-        if (response.body.isNotEmpty) 'Failed with server response: ${response.body}'
-      ],
-    ].join('\n');
-
-    return message;
   }
 
   /// Records the time an HTTP request was sent.

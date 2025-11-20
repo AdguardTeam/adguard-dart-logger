@@ -22,6 +22,7 @@ class NoSqlLoggerFormatter extends LoggerBaseFormatter {
   static const _messageKey = 'message';
   static const _errorKey = 'error';
   static const _stackTraceKey = 'stackTrace';
+  static const _additionalTagsKey = 'additionalTags';
 
   /// Converts a [LogRecord] into a JSON-formatted string.
   ///
@@ -56,6 +57,7 @@ class NoSqlLoggerFormatter extends LoggerBaseFormatter {
           _levelKey: rec.level.name,
           _traceKey: rec.trace.toString(),
           _messageKey: rec.message,
+          if (rec.additionalTags != null && rec.additionalTags!.isNotEmpty) _additionalTagsKey: rec.additionalTags,
           if (rec.error != null) _errorKey: rec.error.toString(),
           if (rec.stackTrace != null) _stackTraceKey: rec.stackTrace.toString(),
         },
@@ -75,10 +77,11 @@ class NoSqlLoggerFormatter extends LoggerBaseFormatter {
   /// ```
   LogRecord decodeFromJson(Map<String, dynamic> data) {
     return LogRecord(
-      message: data[_messageKey] as String, // Main log message
-      timeLog: LogDateTime(dateTime: DateTime.parse(data[_timeKey] as String)), // Timestamp
-      level: LogLevel.values.firstWhere((e) => e.name == data[_levelKey] as String), // Log level
-      trace: LogTrace(data[_traceKey] as String), // Trace information
+      message: data[_messageKey] as String,
+      timeLog: LogDateTime(dateTime: DateTime.parse(data[_timeKey] as String)),
+      level: LogLevel.values.firstWhere((e) => e.name == data[_levelKey] as String),
+      trace: LogTrace((data[_traceKey] as String?) ?? ''),
+      additionalTags: (data[_additionalTagsKey] as List?)?.cast<String>(),
     );
   }
 }

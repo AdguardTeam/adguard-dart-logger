@@ -21,6 +21,9 @@ class LogRecord {
   /// The trace information associated with the log.
   final LogTrace trace;
 
+  /// An optional list of additional tags associated with the log.
+  final List<String>? additionalTags;
+
   /// An optional error object associated with the log.
   final Object? error;
 
@@ -36,6 +39,7 @@ class LogRecord {
     required this.timeLog,
     required this.level,
     required this.trace,
+    this.additionalTags,
     this.error,
     this.stackTrace,
   });
@@ -52,5 +56,4 @@ class LogRecord {
         if (error != null) const LoggingData.error(): error.toString(),
         if (stackTrace != null) const LoggingData.stackTrace(): stackTrace.toString(),
       };
-
 }

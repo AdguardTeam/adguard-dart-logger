@@ -38,6 +38,7 @@ abstract class BaseLogger {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   });
 
   /// {@template logInfo}
@@ -50,6 +51,7 @@ abstract class BaseLogger {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       log(
         message,
@@ -58,6 +60,7 @@ abstract class BaseLogger {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@template logDebug}
@@ -70,6 +73,7 @@ abstract class BaseLogger {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       log(
         message,
@@ -78,6 +82,7 @@ abstract class BaseLogger {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@template logTrace}
@@ -90,6 +95,7 @@ abstract class BaseLogger {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       log(
         message,
@@ -98,6 +104,7 @@ abstract class BaseLogger {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@template logError}
@@ -110,6 +117,7 @@ abstract class BaseLogger {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       log(
         message,
@@ -118,6 +126,7 @@ abstract class BaseLogger {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@template logFatal}
@@ -130,6 +139,7 @@ abstract class BaseLogger {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       log(
         message,
@@ -138,6 +148,7 @@ abstract class BaseLogger {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@template logWarning}
@@ -150,6 +161,7 @@ abstract class BaseLogger {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       log(
         message,
@@ -158,6 +170,7 @@ abstract class BaseLogger {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 }
 
@@ -195,6 +208,7 @@ class Logger extends BaseLogger {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) {
     _logStreamController.add(LogRecord(
       message: message,
@@ -203,6 +217,7 @@ class Logger extends BaseLogger {
       trace: trace ?? LogTrace.current(),
       stackTrace: stackTrace,
       error: error,
+      additionalTags: additionalTags,
     ));
   }
 
@@ -237,6 +252,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       _logger.logInfo(
         message,
@@ -244,6 +260,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@macro logDebug}
@@ -254,6 +271,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       _logger.logDebug(
         message,
@@ -261,6 +279,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@macro logError}
@@ -271,6 +290,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       _logger.logError(
         message,
@@ -278,6 +298,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@macro logFatal}
@@ -288,6 +309,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       _logger.logFatal(
         message,
@@ -295,6 +317,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 
   /// {@macro logTrace}
@@ -305,6 +328,7 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
     StackTrace? stackTrace,
     LogDateTime? timeLog,
     LogTrace? trace,
+    List<String>? additionalTags,
   }) =>
       _logger.logTrace(
         message,
@@ -312,5 +336,6 @@ abstract class LoggerExtension<T extends LoggerExtension<T>> {
         stackTrace: stackTrace,
         timeLog: timeLog,
         trace: trace,
+        additionalTags: additionalTags,
       );
 }

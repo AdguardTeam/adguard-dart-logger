@@ -55,27 +55,55 @@ class DataLoggerFormatter extends LoggerBaseFormatter {
   @override
   StringBuffer formatToStringBuffer(LogRecord rec, StringBuffer sb) {
     final mappedRecord = rec.asMap; // Maps the log record to its data types
+    bool isHeaderClosed = false;
+    bool isAdditionalTagsInserted = false;
+
     for (int i = 0; i < _loggingData.length; i++) {
       final dataType = _loggingData[i]; // Get the current logging data type
+      final isRecordHasAdditionalTags = rec.additionalTags?.isNotEmpty ?? false;
+      final isRecordHasMessageType = dataType == const LoggingData.message();
 
       // If the dataType contains data but is not present in the mapped record
       if (dataType.containsData && !mappedRecord.containsKey(dataType)) {
-        int j = i + 1;
-        // Skip to the next logging data type that contains data
-        while (j < _loggingData.length && !_loggingData[j].containsData) {
-          j++;
-        }
-        i = j - 1; // Adjust the index to continue from the last found data type
+        // Skip only the missing data item, but DO NOT skip separators.
+        // This ensures that header separators like '\n' are still emitted,
+        // so the message moves to a new line even if some header fields are absent.
         continue;
       }
 
       // If the current data type does not contain data, write its separator
       if (!dataType.containsData) {
+        // Insert additional tags right before the first newline separator (end of header)
+        if (!isAdditionalTagsInserted && !isHeaderClosed && dataType.separator == '\n' && isRecordHasAdditionalTags) {
+          final tags = rec.additionalTags!;
+          for (int t = 0; t < tags.length; t++) {
+            sb.write(wrapWithEnclosingCharacters(tags[t]));
+            if (t != tags.length - 1) sb.write(separator);
+          }
+          isAdditionalTagsInserted = true;
+        }
+        if (dataType.separator == '\n') {
+          isHeaderClosed = true;
+        }
+
         sb.write(dataType.separator);
         continue;
       }
       // Get the value to write from the mapped record
       var valueToWrite = mappedRecord[dataType]!;
+
+      // Fallback: if there was no newline separator before message,
+      // ensure additional tags are printed immediately before the message.
+      if (!isAdditionalTagsInserted && !isHeaderClosed && isRecordHasMessageType && isRecordHasAdditionalTags) {
+        final tags = rec.additionalTags!;
+        for (int t = 0; t < tags.length; t++) {
+          sb.write(wrapWithEnclosingCharacters(tags[t]));
+          if (t != tags.length - 1) sb.write(separator);
+        }
+
+        sb.write(separator);
+        isAdditionalTagsInserted = true;
+      }
 
       // Wrap the value if necessary based on the data type
       if (dataType.shouldWrap) {

@@ -12,7 +12,6 @@ sealed class LoggingData {
   /// Indicates whether this type of data contains actual information.
   final bool containsData;
 
-
   const LoggingData._(this.separator)
       : containsData = true,
         shouldWrap = true;
