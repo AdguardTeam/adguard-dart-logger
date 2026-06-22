@@ -15,11 +15,6 @@ class MetaDataController {
   /// The default name of the metadata file used for storing metadata.
   static const String metadataDefaultName = '.metadata';
 
-  /// A subscription to the stream that controls debounced flush operations.
-  /// This ensures that metadata changes are written to disk only after a
-  /// specified delay to avoid excessive disk writes.
-  late StreamSubscription _flushSub;
-
   /// The debounce duration that defines the delay between metadata updates
   /// and the actual write operation. This helps in bundling multiple changes
   /// into a single disk write.
@@ -113,7 +108,6 @@ class MetaDataController {
   /// This method should be called when the `MetaDataManager` is no longer needed
   /// to ensure that all pending writes are completed.
   Future<void> dispose() async {
-    await _flushSub.cancel();
     await _flushController.close();
   }
 }
