@@ -88,6 +88,13 @@ class MetaDataController {
     _flush(metadata);
   }
 
+  /// Clears all metadata from memory and schedules a flush to write an empty
+  /// list to disk, effectively resetting the metadata file.
+  void clearAll() {
+    _buffer = [];
+    _flushController.add([]);
+  }
+
   /// Triggers a flush (write) operation by adding the updated metadata to the
   /// flush stream. The data will be written to disk after the debounce delay.
   ///

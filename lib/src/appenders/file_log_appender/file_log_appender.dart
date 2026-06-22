@@ -118,7 +118,7 @@ class FileLogAppender extends BaseLogAppender {
     final metadataPath = splitPath.join(PlatformPathUtil.platformSeparator);
     List<LogMetaData> metaData = await _logStorage.readMetaData(metadataPath) ?? [];
     final path = splitPath.join(PlatformPathUtil.platformSeparator);
-    
+
     if (metaData.isNotEmpty) {
       final directory = path.replaceAll('.metadata', '');
       final existingFiles = (await _logStorage.readFileNames(directory)).map((e) => basename(e)).toSet();
@@ -246,6 +246,51 @@ class FileLogAppender extends BaseLogAppender {
 
     _flushSub?.resume();
     return rotatedFile;
+  }
+
+  /// Clears all log files and resets the metadata.
+  ///
+  /// Deletes every rotated log file and the current log file from storage,
+  /// clears the in-memory metadata buffer, writes an empty metadata file,
+  /// and resets the rotation capacity tracker.
+  Future<void> clearAllLogs() async {
+    // Ensure initialization is complete.
+    if (_flushSub == null) {
+      await _initializationCache.fetch(_init);
+    }
+
+    // Pause the flush subscription to prevent concurrent writes during cleanup.
+    _flushSub?.pause();
+
+    try {
+      final metaData = _metaDataController!.fetchMetadata();
+
+      // Collect all rotated log file paths.
+      final rotatedPaths = _rotationFileController.getRotatedPaths(filePath, metaData.map((el) => el.id).toList());
+
+      // Delete all rotated log files.
+      await Future.wait(rotatedPaths.map((path) => _logStorage.deleteData(path)));
+
+      // Delete the current log file.
+      await _logStorage.deleteData(filePath);
+
+      // Reset the rotation capacity tracker.
+      final totalCapacity = metaData.fold<int>(0, (sum, e) => sum + e.lengthInBytes);
+      _rotationFileController.updateCapacity(-totalCapacity);
+
+      // Delete the metadata file from storage.
+      await _logStorage.deleteData(_metaDataController!.path);
+
+      // Cancel the old metadata subscription and dispose the old controller.
+      await _metadataSub?.cancel();
+      await _metaDataController!.dispose();
+
+      // Create a fresh metadata controller with no initial data.
+      _metaDataController = MetaDataController(_metaDataController!.path);
+      _metadataSub = _metaDataController!.listen(_onMetadataUpdated);
+    } finally {
+      _flushSub?.resume();
+    }
   }
 
   /// Closes the current write sink and cancels the debounce timer.
